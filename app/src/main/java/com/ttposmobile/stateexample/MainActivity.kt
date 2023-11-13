@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,11 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.ttposmobile.stateexample.ui.theme.StateExampleTheme
 
-var names = mutableListOf<String>("Ali Duru","Aliye Duru")
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var viewModel = MainViewModel()
+
         setContent {
             StateExampleTheme {
                 // A surface container using the 'background' color from the theme
@@ -32,7 +35,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    MainScreen(viewModel = viewModel)
                 }
             }
         }
@@ -40,69 +43,33 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen (){
-    var names = remember{
-        mutableStateListOf<String>(
-            "Ali Duru",
-            "Aliye Duru")
-    }
-    var textFieldValue = remember {
-        mutableStateOf("")
-    }
+fun MainScreen (viewModel: MainViewModel){
+    val newNameStateContent = viewModel.textFieldState.observeAsState("")
+
     Column() {
         GreetingList(
-                names,
-                {
-                    names.add(textFieldValue.value)
-                    textFieldValue.value=""
-                },
-                textFieldValue.value,
-                {newName->textFieldValue.value=newName}
+                newNameStateContent.value,
+                {newName->viewModel.onTextChange(newName)}
         )
-        NamesCount(names = names)
     }
-    
-    
 }
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GreetingList(names: MutableList<String>,
-                 buttonClick : ()-> Unit ,
+fun GreetingList(
                  textFieldValue : String,
                  textFieldUpdate: (newName : String)->Unit){
 
 
     Column() {
-        for (name in names){
-            Greeting(name = name)
-        }
         TextField(value = textFieldValue, onValueChange =textFieldUpdate )
-        Button(onClick =buttonClick) {
-            Text("Add New")
+        Button(onClick ={}) {
+            Text(textFieldValue)
         }
     }
 
 }
-@Composable
-fun NamesCount(names: MutableList<String>){
-    Text(names.size.toString())
-}
 
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    StateExampleTheme {
-        
-    }
-}
